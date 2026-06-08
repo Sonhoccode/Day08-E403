@@ -1,0 +1,14 @@
+python-dotenv==1.0.1
+google-generativeai==0.8.5
+
+# Document ingestion / conversion
+markitdown==0.0.1a3
+
+# Retrieval pipeline
+chromadb
+sentence-transformers
+numpy
+pageindex==0.1.0
+
+# Utilities used by the pipeline
+pytest==8.3.4

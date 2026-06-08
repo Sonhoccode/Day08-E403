@@ -9,6 +9,7 @@ import { Button } from "./components/ui/button";
 import { ScrollArea } from "./components/ui/scroll-area";
 import {
   generateMockResponse,
+  buildConversationMemory,
   simulateAPICall,
   suggestedQuestions,
 } from "./utils/mockData";
@@ -57,6 +58,7 @@ export default function App() {
   const [sourceDocuments, setSourceDocuments] = useState<SourceDocument[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedSourceId, setHighlightedSourceId] = useState<string>();
+  const [conversationMemory, setConversationMemory] = useState("Chưa có lịch sử hội thoại.");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
 
@@ -66,6 +68,7 @@ export default function App() {
 
   useEffect(() => {
     scrollToBottom();
+    setConversationMemory(buildConversationMemory(messages).summary);
   }, [messages]);
 
   const handleSendMessage = async (content: string) => {
@@ -80,8 +83,9 @@ export default function App() {
     setIsLoading(true);
 
     try {
-      const assistantMessage = await simulateAPICall(content);
-      const response = generateMockResponse(content);
+      const memorySnapshot = buildConversationMemory([...messages, userMessage]);
+      const response = generateMockResponse(content, memorySnapshot);
+      const assistantMessage = await simulateAPICall(content, memorySnapshot);
       setMessages((prev) => [...prev, assistantMessage]);
       setSourceDocuments((prev) => {
         const existingIds = new Set(prev.map((doc) => doc.id));
@@ -396,6 +400,19 @@ export default function App() {
                 }}
               >
                 <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+                <div
+                  className="mt-2 text-xs rounded-xl px-3 py-2"
+                  style={{
+                    background: "rgba(99,102,241,0.06)",
+                    border: "1px solid rgba(99,102,241,0.15)",
+                    color: "var(--muted-foreground)",
+                  }}
+                >
+                  <span className="font-medium" style={{ color: "var(--foreground)" }}>
+                    Bộ nhớ hội thoại:
+                  </span>{" "}
+                  {conversationMemory}
+                </div>
               </motion.div>
             </div>
 
