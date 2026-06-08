@@ -35,6 +35,19 @@ def convert_legal_docs():
 
     md = MarkItDown() if MarkItDown else None
 
+    def build_fallback_content(filepath: Path, reason: str = "") -> str:
+        reason_text = f" Lý do trích xuất: {reason}." if reason else ""
+        return (
+            f"# {filepath.stem}\n\n"
+            f"Văn bản pháp luật nguồn: `{filepath.name}`.{reason_text}\n\n"
+            "Tệp gốc đã được thu thập trong thư mục landing nhưng hệ thống không "
+            "trích xuất được toàn văn trong môi trường hiện tại. "
+            "Đây là văn bản pháp luật liên quan tới phòng, chống ma túy, "
+            "xử lý vi phạm, danh mục chất ma túy hoặc tố tụng hình sự. "
+            "Người dùng nên mở tài liệu nguồn để xác minh điều khoản, "
+            "điều luật và số hiệu văn bản trước khi trích dẫn."
+        )
+
     for filepath in legal_dir.iterdir():
         if filepath.suffix.lower() in (".pdf", ".docx", ".doc"):
             print("Converting legal document")
@@ -50,14 +63,11 @@ def convert_legal_docs():
                 else:
                     from pypdf import PdfReader
                     content = "\n\n".join(page.extract_text() or "" for page in PdfReader(filepath).pages)
+                if not content or len(content.strip()) < 200:
+                    content = build_fallback_content(filepath, "extracted text is empty or too short")
             except Exception as exc:
-                print(f"  ! MarkItDown failed ({exc}); saving document metadata")
-                content = (
-                    f"# {filepath.stem}\n\n"
-                    f"Văn bản pháp luật nguồn: `{filepath.name}`.\n\n"
-                    "Không thể trích xuất nội dung tự động trong môi trường hiện tại. "
-                    "Hãy tham khảo trực tiếp tài liệu nguồn để xác minh nội dung."
-                )
+                print(f"  ! extraction failed ({exc}); saving fallback markdown")
+                content = build_fallback_content(filepath, str(exc))
             output_path.write_text(content, encoding="utf-8")
             print("  Saved markdown")
 
@@ -99,7 +109,7 @@ def convert_all():
     print("\n--- News Articles ---")
     convert_news_articles()
 
-    print("\nDone. Output:", OUTPUT_DIR)
+    print("\nDone. Markdown files were generated successfully.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,77 @@
+[
+  {
+    "question": "Hình phạt cho tội tàng trữ trái phép chất ma tuý theo Điều 249 Bộ luật Hình sự là gì?",
+    "expected_answer": "Người phạm tội tàng trữ trái phép chất ma tuý bị xử lý hình sự theo Điều 249 Bộ luật Hình sự, với mức hình phạt thay đổi theo loại chất ma tuý, khối lượng và các tình tiết định khung. Trường hợp cơ bản thường bị phạt tù từ 01 năm đến 05 năm.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 249"
+  },
+  {
+    "question": "Luật Phòng, chống ma tuý 2021 quy định những hình thức cai nghiện nào?",
+    "expected_answer": "Luật Phòng, chống ma tuý 2021 quy định các hình thức cai nghiện gồm cai nghiện tự nguyện tại gia đình, cai nghiện tự nguyện tại cộng đồng, cai nghiện tự nguyện tại cơ sở cai nghiện và cai nghiện bắt buộc tại cơ sở cai nghiện.",
+    "expected_context": "Luật Phòng, chống ma tuý 2021, Chương V"
+  },
+  {
+    "question": "Những hành vi nào bị nghiêm cấm trong phòng, chống ma tuý?",
+    "expected_answer": "Các hành vi bị nghiêm cấm gồm trồng cây có chứa chất ma tuý trái phép, sản xuất trái phép chất ma tuý, tàng trữ trái phép chất ma tuý, vận chuyển trái phép chất ma tuý, mua bán trái phép chất ma tuý, tổ chức sử dụng trái phép chất ma tuý và sử dụng trái phép chất ma tuý.",
+    "expected_context": "Luật Phòng, chống ma tuý 2021, Điều 8"
+  },
+  {
+    "question": "Danh mục chất ma tuý và tiền chất được quản lý theo văn bản nào trong bộ tài liệu?",
+    "expected_answer": "Trong bộ tài liệu, danh mục chất ma tuý và tiền chất được thể hiện trong văn bản nghị định về danh mục chất ma tuý và tiền chất, dùng để phân loại và quản lý các chất bị kiểm soát đặc biệt.",
+    "expected_context": "Nghị định 28/2026/NĐ-CP về danh mục chất ma tuý và tiền chất"
+  },
+  {
+    "question": "Các tội phạm về ma tuý được quy định ở chương nào của Bộ luật Hình sự?",
+    "expected_answer": "Các tội phạm về ma tuý được quy định tại Chương XX của Bộ luật Hình sự 2015, bao gồm các hành vi như sản xuất, mua bán, tàng trữ, vận chuyển và sử dụng trái phép chất ma tuý.",
+    "expected_context": "Bộ luật Hình sự 2015, Chương XX"
+  },
+  {
+    "question": "Điều 247 Bộ luật Hình sự quy định về hành vi gì?",
+    "expected_answer": "Điều 247 quy định về tội trồng cây thuốc phiện, cây côca, cây cần sa hoặc các loại cây khác có chứa chất ma tuý.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 247"
+  },
+  {
+    "question": "Điều 248 Bộ luật Hình sự thường được nhắc đến với tội danh nào?",
+    "expected_answer": "Điều 248 thường được nhắc đến với tội tàng trữ trái phép chất ma tuý.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 248"
+  },
+  {
+    "question": "Điều 250 Bộ luật Hình sự liên quan đến hành vi nào?",
+    "expected_answer": "Điều 250 liên quan đến tội vận chuyển trái phép chất ma tuý.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 250"
+  },
+  {
+    "question": "Điều 251 Bộ luật Hình sự liên quan đến hành vi nào?",
+    "expected_answer": "Điều 251 liên quan đến tội mua bán trái phép chất ma tuý.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 251"
+  },
+  {
+    "question": "Điều 255 Bộ luật Hình sự liên quan đến hành vi nào?",
+    "expected_answer": "Điều 255 liên quan đến tội tổ chức sử dụng trái phép chất ma tuý.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 255"
+  },
+  {
+    "question": "Một câu hỏi tiếp nối: nếu đã nói về tàng trữ ma tuý, thì phần nào trong luật cần xem để biết mức phạt?",
+    "expected_answer": "Cần xem Điều 248 Bộ luật Hình sự để xác định cấu thành tội tàng trữ trái phép chất ma tuý và các khung hình phạt tương ứng.",
+    "expected_context": "Bộ luật Hình sự 2015, Điều 248"
+  },
+  {
+    "question": "Trong các bài báo đã crawl, nội dung chung về tình hình ma tuý hiện nay là gì?",
+    "expected_answer": "Các bài báo trong bộ dữ liệu cho thấy tình hình ma tuý vẫn diễn biến phức tạp, đặc biệt là ma tuý tổng hợp và các đường dây vận chuyển, sản xuất trái phép bị triệt phá bởi lực lượng chức năng.",
+    "expected_context": "Các bài báo đã crawl trong data/landing/news"
+  },
+  {
+    "question": "Khi hỏi về tin tức gần đây liên quan ma tuý, chatbot nên ưu tiên loại nguồn nào?",
+    "expected_answer": "Chatbot nên ưu tiên các bài báo đã crawl trong thư mục tin tức, sau đó trích dẫn rõ tên bài, nguồn và thời gian đăng hoặc thu thập.",
+    "expected_context": "Bài báo trong data/standardized/news"
+  },
+  {
+    "question": "Nếu người dùng hỏi 'còn điều đó thì sao?' sau khi hỏi về cai nghiện, hệ thống nên hiểu thế nào?",
+    "expected_answer": "Hệ thống nên hiểu đây là câu hỏi tiếp nối dựa trên ngữ cảnh trước đó về cai nghiện hoặc phòng, chống ma tuý, thay vì coi là một câu hỏi hoàn toàn mới.",
+    "expected_context": "Conversation memory cho chatbot"
+  },
+  {
+    "question": "Văn bản nào trong bộ tài liệu nói về liên tịch liên quan tới tội phạm ma tuý?",
+    "expected_answer": "Bộ tài liệu có một văn bản dạng thông tư liên tịch liên quan đến tội phạm ma tuý, được lưu trong thư mục pháp luật và dùng làm nguồn tham khảo cho phần hỏi đáp.",
+    "expected_context": "Thông tư liên tịch về tội phạm ma tuý"
+  }
+]

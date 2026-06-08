@@ -138,7 +138,6 @@ def rerank(
         # Cần query_embedding - embed query trước
         raise NotImplementedError("Call rerank_mmr with query_embedding")
     elif method == "rrf":
-        # RRF cần nhiều ranked lists - gọi riêng
         raise NotImplementedError("Call rerank_rrf with ranked_lists")
     else:
         raise ValueError(f"Unknown rerank method: {method}")
