@@ -18,6 +18,7 @@ Hướng dẫn:
 """
 
 import os
+import re
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -25,6 +26,42 @@ load_dotenv()
 
 PAGEINDEX_API_KEY = os.getenv("PAGEINDEX_API_KEY", "")
 STANDARDIZED_DIR = Path(__file__).parent.parent / "data" / "standardized"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_FALLBACK_CACHE: list[dict] | None = None
+
+
+def _tokenize(text: str) -> list[str]:
+    return re.findall(r"[\wÀ-ỹ]+", text.lower(), flags=re.UNICODE)
+
+
+def _load_fallback_docs() -> list[dict]:
+    global _FALLBACK_CACHE
+    if _FALLBACK_CACHE is not None:
+        return _FALLBACK_CACHE
+
+    docs: list[dict] = []
+    search_roots = [STANDARDIZED_DIR, *REPO_ROOT.glob("personal_project/**/data/standardized")]
+    seen_paths: set[Path] = set()
+    for root in search_roots:
+        if not root.exists():
+            continue
+        for md_file in root.rglob("*.md"):
+            if md_file in seen_paths or not md_file.is_file():
+                continue
+            seen_paths.add(md_file)
+            docs.append(
+                {
+                    "content": md_file.read_text(encoding="utf-8"),
+                    "metadata": {
+                        "filename": md_file.stem,
+                        "type": md_file.parent.name,
+                        "source": str(md_file.relative_to(root)).replace("\\", "/"),
+                    },
+                }
+            )
+
+    _FALLBACK_CACHE = docs
+    return docs
 
 
 def upload_documents():
@@ -62,7 +99,20 @@ def pageindex_search(query: str, top_k: int = 5) -> list[dict]:
         }
     """
     if not PAGEINDEX_API_KEY:
-        return [{"content": "Dummy fallback content", "score": 1.0, "metadata": {}, "source": "pageindex"}]
+        from .task5_semantic_search import semantic_search
+        from .task6_lexical_search import lexical_search
+        from .task7_reranking import rerank_rrf
+
+        dense = semantic_search(query, top_k=top_k * 2)
+        sparse = lexical_search(query, top_k=top_k * 2)
+        merged = rerank_rrf([dense, sparse], top_k=top_k)
+        return [
+            {
+                **item,
+                "source": "pageindex",
+            }
+            for item in merged[:top_k]
+        ]
 
     try:
         from pageindex import PageIndex
@@ -78,7 +128,20 @@ def pageindex_search(query: str, top_k: int = 5) -> list[dict]:
             for r in results
         ]
     except Exception:
-        return [{"content": "Dummy fallback content", "score": 1.0, "metadata": {}, "source": "pageindex"}]
+        from .task5_semantic_search import semantic_search
+        from .task6_lexical_search import lexical_search
+        from .task7_reranking import rerank_rrf
+
+        dense = semantic_search(query, top_k=top_k * 2)
+        sparse = lexical_search(query, top_k=top_k * 2)
+        merged = rerank_rrf([dense, sparse], top_k=top_k)
+        return [
+            {
+                **item,
+                "source": "pageindex",
+            }
+            for item in merged[:top_k]
+        ]
 
 
 if __name__ == "__main__":

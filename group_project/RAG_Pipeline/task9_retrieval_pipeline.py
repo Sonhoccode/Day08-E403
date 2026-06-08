@@ -16,6 +16,7 @@ from .task5_semantic_search import semantic_search
 from .task6_lexical_search import lexical_search
 from .task7_reranking import rerank, rerank_rrf
 from .task8_pageindex_vectorless import pageindex_search
+from .task0_routing import classify_query
 
 
 # =============================================================================
@@ -24,7 +25,31 @@ from .task8_pageindex_vectorless import pageindex_search
 
 SCORE_THRESHOLD = 0.3   # Nếu best score < threshold → fallback PageIndex
 DEFAULT_TOP_K = 5
-RERANK_METHOD = "mmr"  # "cross_encoder" | "mmr" | "rrf"
+RERANK_METHOD = "rrf"  # "cross_encoder" | "mmr" | "rrf"
+
+
+def _dedupe_by_source(results: list[dict]) -> list[dict]:
+    deduped: list[dict] = []
+    seen: set[str] = set()
+
+    for item in results:
+        metadata = item.get("metadata", {}) or {}
+        source = str(metadata.get("source") or item.get("content", "")[:80]).strip()
+        if source in seen:
+            continue
+        seen.add(source)
+        deduped.append(item)
+
+    return deduped
+
+
+def _filter_legal_results(results: list[dict]) -> list[dict]:
+    filtered = []
+    for item in results:
+        metadata = item.get("metadata", {}) or {}
+        if metadata.get("type") == "legal":
+            filtered.append(item)
+    return filtered
 
 
 def retrieve(
@@ -61,10 +86,21 @@ def retrieve(
             'source': str  # 'hybrid' hoặc 'pageindex'
         }
     """
-    dense_results = semantic_search(query, top_k=top_k * 2)
-    sparse_results = lexical_search(query, top_k=top_k * 2)
+    intent = classify_query(query)
+
+    dense_results = semantic_search(query, top_k=top_k * 3)
+    sparse_results = lexical_search(query, top_k=top_k * 3)
+
+    if intent == "legal":
+        legal_dense = _filter_legal_results(dense_results)
+        legal_sparse = _filter_legal_results(sparse_results)
+        if legal_dense:
+            dense_results = legal_dense
+        if legal_sparse:
+            sparse_results = legal_sparse
 
     merged = rerank_rrf([dense_results, sparse_results], top_k=top_k * 2)
+    merged = _dedupe_by_source(merged)
     for item in merged:
         item["source"] = "hybrid"
 
@@ -73,10 +109,20 @@ def retrieve(
     else:
         final_results = merged[:top_k]
 
+    final_results = _dedupe_by_source(final_results)
+
+    if intent == "legal" and final_results:
+        return final_results[:top_k]
+
     if not final_results or final_results[0]["score"] < score_threshold:
         score_val = final_results[0]["score"] if final_results else 0
         print(f"  ⚠ Hybrid score ({score_val:.3f}) < threshold ({score_threshold}). Fallback → PageIndex")
         fallback = pageindex_search(query, top_k=top_k)
+        if intent == "legal":
+            legal_fallback = _filter_legal_results(fallback)
+            if legal_fallback:
+                fallback = legal_fallback
+        fallback = _dedupe_by_source(fallback)
         return fallback
 
     return final_results[:top_k]

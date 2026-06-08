@@ -16,7 +16,20 @@ Hướng dẫn:
 import json
 from pathlib import Path
 
-from markitdown import MarkItDown
+try:
+    from markitdown import MarkItDown
+except Exception:  # pragma: no cover - optional dependency
+    MarkItDown = None
+
+try:
+    from docx import Document
+except Exception:  # pragma: no cover - optional dependency
+    Document = None
+
+try:
+    from pypdf import PdfReader
+except Exception:  # pragma: no cover - optional dependency
+    PdfReader = None
 
 LANDING_DIR = Path(__file__).parent.parent / "data" / "landing"
 OUTPUT_DIR = Path(__file__).parent.parent / "data" / "standardized"
@@ -28,14 +41,34 @@ def convert_legal_docs():
     output_dir = OUTPUT_DIR / "legal"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    md = MarkItDown()
-
     for filepath in legal_dir.iterdir():
         if filepath.suffix.lower() in (".pdf", ".docx", ".doc"):
             print(f"Converting: {filepath.name}")
-            result = md.convert(str(filepath))
             output_path = output_dir / f"{filepath.stem}.md"
-            output_path.write_text(result.text_content, encoding="utf-8")
+
+            if filepath.suffix.lower() in (".docx", ".doc") and Document is not None:
+                doc = Document(str(filepath))
+                paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+                text = "\n\n".join(paragraphs)
+            elif filepath.suffix.lower() == ".pdf" and PdfReader is not None:
+                reader = PdfReader(str(filepath))
+                pages = []
+                for page in reader.pages:
+                    page_text = page.extract_text() or ""
+                    page_text = page_text.strip()
+                    if page_text:
+                        pages.append(page_text)
+                text = "\n\n".join(pages)
+            elif MarkItDown is not None:
+                md = MarkItDown()
+                result = md.convert(str(filepath))
+                text = result.text_content
+            else:
+                raise RuntimeError(
+                    "Không có dependency để convert legal docs. Hãy cài pypdf hoặc markitdown[docx]."
+                )
+
+            output_path.write_text(text, encoding="utf-8")
             print(f"  ✓ Saved: {output_path}")
 
 

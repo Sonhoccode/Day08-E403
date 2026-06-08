@@ -37,13 +37,11 @@ function CitationBadge({
       whileHover={{ scale: 1.05, y: -1 }}
       whileTap={{ scale: 0.97 }}
       onClick={onClick}
-      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+      className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium transition-colors border"
       style={{
-        background: isLaw
-          ? "linear-gradient(135deg, rgba(79,70,229,0.12), rgba(124,58,237,0.12))"
-          : "linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.12))",
-        border: `1px solid ${isLaw ? "rgba(99,102,241,0.35)" : "rgba(16,185,129,0.35)"}`,
-        color: isLaw ? "#6366f1" : "#059669",
+        background: "var(--muted)",
+        borderColor: "var(--border)",
+        color: "var(--foreground)",
       }}
     >
       {isLaw ? <BookOpen className="size-3" /> : <Newspaper className="size-3" />}
@@ -82,13 +80,13 @@ export function ChatMessage({ message, onCitationClick, index = 0 }: ChatMessage
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
-          className="size-8 rounded-full flex items-center justify-center shrink-0 mt-1"
+          className="size-8 flex items-center justify-center shrink-0 mt-1"
           style={{
-            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-            boxShadow: "0 4px 12px rgba(99,102,241,0.35)",
+            background: "var(--primary)",
+            color: "var(--primary-foreground)",
           }}
         >
-          <Scale className="size-4 text-white" />
+          <Scale className="size-4" />
         </motion.div>
       )}
 
@@ -96,37 +94,32 @@ export function ChatMessage({ message, onCitationClick, index = 0 }: ChatMessage
         {/* Message bubble */}
         {isUser ? (
           <motion.div
-            whileHover={{ scale: 1.01 }}
-            className="px-4 py-3 rounded-2xl rounded-tr-sm relative overflow-hidden"
+            className="px-4 py-3 relative overflow-hidden"
             style={{
-              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-              boxShadow: "0 4px 20px rgba(99,102,241,0.35)",
+              background: "var(--foreground)",
+              color: "var(--background)",
             }}
           >
-            <div className="animate-shimmer absolute inset-0 opacity-50" />
-            <p className="text-sm text-white whitespace-pre-wrap relative z-10">
+            <p className="text-sm whitespace-pre-wrap relative z-10">
               {message.content}
             </p>
           </motion.div>
         ) : (
           <motion.div
-            whileHover={{ scale: 1.005 }}
-            className="px-4 py-3 rounded-2xl rounded-tl-sm"
+            className="relative px-4 py-3 overflow-hidden border"
             style={{
               background: "var(--card)",
-              border: "1px solid var(--border)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+              borderColor: "var(--border)",
             }}
           >
             {/* Decorative accent line */}
             <div
-              className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full"
+              className="absolute left-0 top-0 bottom-0 w-1"
               style={{
-                background: "linear-gradient(to bottom, #6366f1, #a78bfa)",
-                marginLeft: "-1px",
+                background: "var(--primary)",
               }}
             />
-            <div className="text-sm whitespace-pre-wrap" style={{ color: "var(--foreground)" }}>
+            <div className="text-sm whitespace-pre-wrap pl-1" style={{ color: "var(--foreground)" }}>
               {message.content.split("\n").map((line, i) => (
                 <p key={i} className={line === "" ? "h-2" : "mb-0.5"}>
                   {parseContentWithBold(line)}
@@ -173,13 +166,13 @@ export function ChatMessage({ message, onCitationClick, index = 0 }: ChatMessage
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
-          className="size-8 rounded-full flex items-center justify-center shrink-0 mt-1"
+          className="size-8 flex items-center justify-center shrink-0 mt-1 border"
           style={{
-            background: "linear-gradient(135deg, #e0e7ff, #ede9fe)",
-            border: "1px solid rgba(99,102,241,0.25)",
+            background: "var(--muted)",
+            borderColor: "var(--border)",
           }}
         >
-          <User className="size-4" style={{ color: "#6366f1" }} />
+          <User className="size-4" style={{ color: "var(--foreground)" }} />
         </motion.div>
       )}
     </motion.div>
