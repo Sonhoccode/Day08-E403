@@ -189,15 +189,37 @@ run_dashboard()
 
 ## Hướng Dẫn Chạy
 
+### Cách chạy đúng theo rubric demo
+
 ```bash
 # Cài đặt dependencies
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
-# Chạy app
-streamlit run app.py
-# hoặc
-chainlit run app.py
+# Chạy backend RAG API
+python -m uvicorn app:app --reload --port 8000
+
+# Chạy giao diện chat Chainlit trên cổng khác backend
+chainlit run chainlit_app.py --host 127.0.0.1 --port 8001 -h
 ```
+
+Chainlit là giao diện chat chính để trình bày theo yêu cầu đề bài. UI này
+gọi `POST /api/chat`, nhận `answer`, `citations`, `sources`, `memory_summary`,
+và hiển thị tài liệu nguồn đã dùng.
+Frontend React là giao diện phụ trợ nếu bạn muốn giữ bản custom UI; demo chính nên dùng Chainlit.
+
+### Ollama fallback
+
+Nếu không dùng Gemini, bạn có thể chạy model qua Ollama và cấu hình trong `.env`:
+
+```bash
+set OLLAMA_HOST=http://localhost:11434
+set OLLAMA_MODEL=llama3.1:8b
+set OLLAMA_MAX_TOKENS=512
+set OLLAMA_TIMEOUT=120
+```
+
+Backend sẽ ưu tiên Ollama trước, rồi mới rơi xuống trả lời heuristic nếu
+Ollama không sẵn sàng.
 
 ---
 

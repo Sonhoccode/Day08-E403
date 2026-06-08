@@ -1,0 +1,99 @@
+# Python bytecode and cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Chainlit runtime artifacts
+.chainlit/
+**/.chainlit/
+chainlit.md
+**/chainlit.md
+
+# Frontend build/runtime artifacts
+group_project/frontend/node_modules/
+group_project/frontend/dist/
+group_project/frontend/.vite/
+group_project/frontend/.cache/
+**/node_modules/
+**/dist/
+**/.vite/
+**/.cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+**/.venv/
+**/venv/
+**/env/
+**/ENV/
+group_project/.venv/
+group_project/**/.venv/
+
+# Local environment files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Notebook artifacts
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Build / packaging outputs
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Project-generated data and outputs
+data/landing/
+data/standardized/
+**/data/landing/
+**/data/standardized/
+group_project/data/chroma_db/
+group_project/data/chroma_db/**
+group_project/evaluation/results.md
+group_project/evaluation/*.jsonl
+outputs/
+output/
+results/
+logs/
+cache/
+tmp/
+temp/
+**/logs/
+**/cache/
+**/tmp/
+**/temp/
+
+# Model / vector store artifacts
+*.faiss
+*.index
+*.sqlite
+*.db
+*.pkl
+*.pickle
+*.parquet
+*.sqlite3
+**/*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db

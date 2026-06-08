@@ -1,0 +1,58 @@
+# bo-luat-hinh-su-2015-chuong-ma-tuy
+
+Bo luat Hinh su 2015, sua doi bo sung 2017 - Chuong XX ve cac toi pham ma
+tuy. Cac dieu 247 den 259 quy dinh hanh vi pham toi nhu trong cay chua
+chat ma tuy, san xuat, tang tru, van chuyen, mua ban trai phep chat ma tuy,
+chiem doat chat ma tuy va to chuc su dung trai phep chat ma tuy.
+
+Dieu 249 quy dinh toi tang tru trai phep chat ma tuy. Muc hinh phat phu
+thuoc vao loai chat ma tuy, khoi luong, nhan than nguoi pham toi va tinh
+tiet tang nang. Hinh phat co the la tu co thoi han va trong truong hop dac
+biet nghiem trong co the o muc rat cao theo luat.
+
+Dieu 251 quy dinh toi mua ban trai phep chat ma tuy. Hanh vi mua ban, trao
+doi, moi gioi hoac to chuc giao dich chat ma tuy trai phep bi xu ly nghiem
+khac hon hanh vi su dung don le.
+
+Bo luat Hinh su 2015, sua doi bo sung 2017 - Chuong XX ve cac toi pham ma
+tuy. Cac dieu 247 den 259 quy dinh hanh vi pham toi nhu trong cay chua
+chat ma tuy, san xuat, tang tru, van chuyen, mua ban trai phep chat ma tuy,
+chiem doat chat ma tuy va to chuc su dung trai phep chat ma tuy.
+
+Dieu 249 quy dinh toi tang tru trai phep chat ma tuy. Muc hinh phat phu
+thuoc vao loai chat ma tuy, khoi luong, nhan than nguoi pham toi va tinh
+tiet tang nang. Hinh phat co the la tu co thoi han va trong truong hop dac
+biet nghiem trong co the o muc rat cao theo luat.
+
+Dieu 251 quy dinh toi mua ban trai phep chat ma tuy. Hanh vi mua ban, trao
+doi, moi gioi hoac to chuc giao dich chat ma tuy trai phep bi xu ly nghiem
+khac hon hanh vi su dung don le.
+
+Bo luat Hinh su 2015, sua doi bo sung 2017 - Chuong XX ve cac toi pham ma
+tuy. Cac dieu 247 den 259 quy dinh hanh vi pham toi nhu trong cay chua
+chat ma tuy, san xuat, tang tru, van chuyen, mua ban trai phep chat ma tuy,
+chiem doat chat ma tuy va to chuc su dung trai phep chat ma tuy.
+
+Dieu 249 quy dinh toi tang tru trai phep chat ma tuy. Muc hinh phat phu
+thuoc vao loai chat ma tuy, khoi luong, nhan than nguoi pham toi va tinh
+tiet tang nang. Hinh phat co the la tu co thoi han va trong truong hop dac
+biet nghiem trong co the o muc rat cao theo luat.
+
+Dieu 251 quy dinh toi mua ban trai phep chat ma tuy. Hanh vi mua ban, trao
+doi, moi gioi hoac to chuc giao dich chat ma tuy trai phep bi xu ly nghiem
+khac hon hanh vi su dung don le.
+
+Bo luat Hinh su 2015, sua doi bo sung 2017 - Chuong XX ve cac toi pham ma
+tuy. Cac dieu 247 den 259 quy dinh hanh vi pham toi nhu trong cay chua
+chat ma tuy, san xuat, tang tru, van chuyen, mua ban trai phep chat ma tuy,
+chiem doat chat ma tuy va to chuc su dung trai phep chat ma tuy.
+
+Dieu 249 quy dinh toi tang tru trai phep chat ma tuy. Muc hinh phat phu
+thuoc vao loai chat ma tuy, khoi luong, nhan than nguoi pham toi va tinh
+tiet tang nang. Hinh phat co the la tu co thoi han va trong truong hop dac
+biet nghiem trong co the o muc rat cao theo luat.
+
+Dieu 251 quy dinh toi mua ban trai phep chat ma tuy. Hanh vi mua ban, trao
+doi, moi gioi hoac to chuc giao dich chat ma tuy trai phep bi xu ly nghiem
+khac hon hanh vi su dung don le.
+
