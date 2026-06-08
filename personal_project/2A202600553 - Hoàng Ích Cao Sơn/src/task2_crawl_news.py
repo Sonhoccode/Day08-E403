@@ -24,12 +24,12 @@ def setup_directory():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# TODO: Điền danh sách URL bài báo cần crawl
 ARTICLE_URLS = [
-    # Ví dụ:
-    # "https://vnexpress.net/...",
-    # "https://tuoitre.vn/...",
-    # "https://thanhnien.vn/...",
+    "https://tienphong.vn/ca-si-miu-le-bi-bat-qua-tang-su-dung-ma-tuy-cung-nhom-ban-o-cat-ba-post1842432.tpo",
+    "https://nld.com.vn/cong-an-tp-hcm-ket-luan-vu-ca-si-chi-dan-dung-ma-tuy-196250821135822527.htm",
+    "https://vnexpress.net/dien-vien-hai-huu-tin-su-dung-ma-tuy-vi-to-mo-4599355.html",
+    "https://dantri.com.vn/suc-khoe/binh-gold-lai-xe-khi-phe-ma-tuy-canh-bao-ao-tuong-tinh-tao-sau-vo-lang-20250724094306874.htm",
+    "https://dantri.com.vn/phap-luat/ca-si-chu-bin-bi-tam-giu-vi-lien-quan-den-ma-tuy-20240606183158183.htm"
 ]
 
 
@@ -41,22 +41,21 @@ async def crawl_article(url: str) -> dict:
         {
             "url": str,
             "title": str,
-            "date_crawled": str (ISO format),
-            "content_markdown": str
+            "date_crawled": str,
+            "content": str
         }
     """
     from crawl4ai import AsyncWebCrawler
 
-    # TODO: Implement crawling logic
-    # async with AsyncWebCrawler() as crawler:
-    #     result = await crawler.arun(url=url)
-    #     return {
-    #         "url": url,
-    #         "title": result.metadata.get("title", "Unknown"),
-    #         "date_crawled": datetime.now().isoformat(),
-    #         "content_markdown": result.markdown,
-    #     }
-    raise NotImplementedError("Implement crawl_article")
+    async with AsyncWebCrawler() as crawler:
+        result = await crawler.arun(url=url)
+
+        return {
+            "url": url,
+            "title": result.metadata.get("title", "Unknown") if result.metadata else "Unknown",
+            "date_crawled": datetime.now().isoformat(),
+            "content_markdown": result.markdown or "",
+        }
 
 
 async def crawl_all():
@@ -65,13 +64,23 @@ async def crawl_all():
 
     for i, url in enumerate(ARTICLE_URLS, 1):
         print(f"[{i}/{len(ARTICLE_URLS)}] Crawling: {url}")
-        article = await crawl_article(url)
 
-        # Lưu file JSON
-        filename = f"article_{i:02d}.json"
-        filepath = DATA_DIR / filename
-        filepath.write_text(json.dumps(article, ensure_ascii=False, indent=2))
-        print(f"  ✓ Saved: {filepath}")
+        try:
+            article = await crawl_article(url)
+
+            filename = f"article_{i:02d}.json"
+            filepath = DATA_DIR / filename
+
+            filepath.write_text(
+                json.dumps(article, ensure_ascii=False, indent=2),
+                encoding="utf-8"
+            )
+
+            print(f"  ✓ Saved: {filepath}")
+
+        except Exception as e:
+            print(f"  ✗ Error crawling {url}")
+            print(f"  Reason: {e}")
 
 
 if __name__ == "__main__":
