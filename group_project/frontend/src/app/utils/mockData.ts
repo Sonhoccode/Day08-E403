@@ -1,6 +1,18 @@
 import { Citation, Message } from "../components/ChatMessage";
 import { SourceDocument } from "../components/SourceDocuments";
 
+export interface ConversationTurn {
+  role: Message["role"];
+  content: string;
+}
+
+export interface ConversationMemory {
+  turns: ConversationTurn[];
+  topic?: string;
+  lastUserQuestion?: string;
+  summary: string;
+}
+
 // Mock data cho các câu trả lời và tài liệu nguồn
 export const mockResponses: Record<
   string,
@@ -137,12 +149,101 @@ export const suggestedQuestions = [
   "Các biện pháp phòng chống ma túy của Nhà nước?",
 ];
 
-export function generateMockResponse(userMessage: string): {
+function detectTopic(text: string): string | undefined {
+  const message = text.toLowerCase();
+
+  if (
+    message.includes("mức phạt") ||
+    message.includes("xử phạt") ||
+    message.includes("phạt tù") ||
+    message.includes("điều 249") ||
+    message.includes("điều 251")
+  ) {
+    return "criminal_penalties";
+  }
+
+  if (
+    message.includes("cai nghiện") ||
+    message.includes("phòng chống ma túy") ||
+    message.includes("phòng, chống ma túy") ||
+    message.includes("nghiện ma túy")
+  ) {
+    return "prevention_and_treatment";
+  }
+
+  if (
+    message.includes("tin tức") ||
+    message.includes("mới nhất") ||
+    message.includes("gần đây") ||
+    message.includes("báo") ||
+    message.includes("vụ án")
+  ) {
+    return "news";
+  }
+
+  return undefined;
+}
+
+function isFollowUpQuestion(text: string) {
+  const message = text.toLowerCase().trim();
+  return (
+    message.length < 45 ||
+    /(còn|thế còn|vậy|đó|nó|chi tiết|giải thích thêm|tiếp theo|nữa|trong trường hợp đó|về vấn đề này)/.test(message)
+  );
+}
+
+function getMemoryTopic(memory?: ConversationMemory) {
+  return memory?.topic || memory?.summary || "general";
+}
+
+export function summarizeConversation(memory: ConversationTurn[]): string {
+  if (memory.length === 0) {
+    return "Chưa có lịch sử hội thoại.";
+  }
+
+  const recent = memory.slice(-6);
+  const userQuestions = recent.filter((turn) => turn.role === "user").map((turn) => turn.content);
+  const lastQuestion = userQuestions.at(-1) || "";
+  const topic = detectTopic(lastQuestion);
+
+  if (topic === "criminal_penalties") {
+    return "Đang trao đổi về mức phạt và trách nhiệm hình sự liên quan đến ma túy.";
+  }
+
+  if (topic === "prevention_and_treatment") {
+    return "Đang trao đổi về phòng, chống ma túy và cai nghiện.";
+  }
+
+  if (topic === "news") {
+    return "Đang trao đổi về tin tức, vụ án và tình hình ma túy gần đây.";
+  }
+
+  return `Đang theo dõi ${userQuestions.length} câu hỏi gần nhất, chủ đề hiện tại là: ${lastQuestion || "chưa xác định"}.`;
+}
+
+function pickResponseByTopic(topic?: string) {
+  if (topic === "criminal_penalties") return mockResponses.mức_phạt;
+  if (topic === "prevention_and_treatment") return mockResponses.default;
+  if (topic === "news") return mockResponses.tin_tức;
+  return mockResponses.default;
+}
+
+export function generateMockResponse(
+  userMessage: string,
+  memory?: ConversationMemory
+): {
   answer: string;
   citations: Citation[];
   sources: SourceDocument[];
 } {
   const message = userMessage.toLowerCase();
+  const topicFromMessage = detectTopic(message);
+  const topicFromMemory = memory?.topic;
+  const followUp = isFollowUpQuestion(message);
+
+  if (followUp && topicFromMemory && !topicFromMessage) {
+    return pickResponseByTopic(topicFromMemory);
+  }
 
   if (message.includes("mức phạt") || message.includes("xử phạt") || message.includes("phạt tù")) {
     return mockResponses.mức_phạt;
@@ -156,11 +257,14 @@ export function generateMockResponse(userMessage: string): {
 }
 
 // Hàm mô phỏng API call với delay
-export async function simulateAPICall(userMessage: string): Promise<Message> {
+export async function simulateAPICall(
+  userMessage: string,
+  memory?: ConversationMemory
+): Promise<Message> {
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
 
-  const response = generateMockResponse(userMessage);
+  const response = generateMockResponse(userMessage, memory);
 
   return {
     id: Date.now().toString(),
@@ -168,5 +272,22 @@ export async function simulateAPICall(userMessage: string): Promise<Message> {
     content: response.answer,
     citations: response.citations,
     timestamp: new Date(),
+  };
+}
+
+export function buildConversationMemory(messages: Message[]): ConversationMemory {
+  const turns: ConversationTurn[] = messages.slice(-6).map((message) => ({
+    role: message.role,
+    content: message.content,
+  }));
+
+  const lastUserQuestion = [...messages].reverse().find((message) => message.role === "user")?.content;
+  const topic = lastUserQuestion ? detectTopic(lastUserQuestion) : undefined;
+
+  return {
+    turns,
+    topic,
+    lastUserQuestion,
+    summary: summarizeConversation(turns),
   };
 }

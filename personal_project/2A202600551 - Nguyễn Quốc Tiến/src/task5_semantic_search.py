@@ -8,8 +8,17 @@ Yêu cầu:
     - Output: danh sách chunks có score, sorted descending
     - Phải tương thích với embedding model và vector store ở Task 4
 """
+import chromadb
+from pathlib import Path
+from sentence_transformers import SentenceTransformer
 
-
+db_path = Path(__file__).parent.parent / "data" / "chroma_db"
+client = chromadb.PersistentClient(path=str(db_path))
+try:
+    collection = client.get_collection("DrugLawDocs")
+except:
+    collection = None
+model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 def semantic_search(query: str, top_k: int = 10) -> list[dict]:
     """
     Tìm kiếm ngữ nghĩa sử dụng vector similarity.
@@ -26,37 +35,28 @@ def semantic_search(query: str, top_k: int = 10) -> list[dict]:
         }
         Sorted by score descending.
     """
-    # TODO: Implement semantic search
-    #
-    # Bước 1: Embed query bằng cùng model ở Task 4
-    # Bước 2: Query vector store (cosine similarity)
-    # Bước 3: Return top_k results
-    #
-    # Ví dụ với Weaviate:
-    # import weaviate
-    # from sentence_transformers import SentenceTransformer
-    #
-    # model = SentenceTransformer("BAAI/bge-m3")
-    # query_embedding = model.encode(query).tolist()
-    #
-    # client = weaviate.connect_to_local()
-    # collection = client.collections.get("DrugLawDocs")
-    #
-    # results = collection.query.near_vector(
-    #     near_vector=query_embedding,
-    #     limit=top_k,
-    #     return_metadata=MetadataQuery(distance=True)
-    # )
-    #
-    # return [
-    #     {
-    #         "content": obj.properties["content"],
-    #         "score": 1 - obj.metadata.distance,  # distance → similarity
-    #         "metadata": {"source": obj.properties["source"], ...}
-    #     }
-    #     for obj in results.objects
-    # ]
-    raise NotImplementedError("Implement semantic_search")
+    if not collection:
+        print("Warning: ChromaDB collection not found.")
+        return []
+
+    query_embedding = model.encode(query).tolist()
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=top_k,
+        include=["documents", "metadatas", "distances"]
+    )
+    
+    output = []
+    if not results["ids"] or not results["ids"][0]:
+        return output
+        
+    for doc, meta, dist in zip(results["documents"][0], results["metadatas"][0], results["distances"][0]):
+        output.append({
+            "content": doc,
+            "score": 1.0 - float(dist), # cosine distance -> similarity
+            "metadata": meta
+        })
+    return output
 
 
 if __name__ == "__main__":

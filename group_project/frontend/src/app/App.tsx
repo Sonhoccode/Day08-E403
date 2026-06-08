@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Scale, Trash2, Sun, Moon, Sparkles, Shield } from "lucide-react";
+import { Scale, Trash2, Sun, Moon, Shield, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChatMessage, Message } from "./components/ChatMessage";
 import { ChatInput } from "./components/ChatInput";
@@ -8,10 +8,10 @@ import { SuggestedQuestions } from "./components/SuggestedQuestions";
 import { Button } from "./components/ui/button";
 import { ScrollArea } from "./components/ui/scroll-area";
 import {
-  generateMockResponse,
-  simulateAPICall,
+  buildConversationMemory,
   suggestedQuestions,
 } from "./utils/mockData";
+import { sendChatMessage } from "./utils/ragApi";
 import { useTheme } from "next-themes";
 
 function TypingIndicator() {
@@ -21,29 +21,15 @@ function TypingIndicator() {
       animate={{ opacity: 1, y: 0 }}
       className="flex gap-3 justify-start"
     >
-      <div
-        className="size-8 rounded-full flex items-center justify-center shrink-0"
-        style={{
-          background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-          boxShadow: "0 4px 12px rgba(99,102,241,0.35)",
-        }}
-      >
-        <Scale className="size-4 text-white" />
+      <div className="size-8 flex items-center justify-center shrink-0 bg-primary text-primary-foreground">
+        <Scale className="size-4" />
       </div>
-      <div
-        className="px-4 py-3 rounded-2xl rounded-tl-sm flex items-center gap-1.5"
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-        }}
-      >
+      <div className="px-4 py-3 flex items-center gap-1.5 border bg-card">
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
-            className="size-2 rounded-full"
-            style={{ background: "#6366f1" }}
-            animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.4, 1, 0.4] }}
+            className="size-2 bg-primary"
+            animate={{ opacity: [0.3, 1, 0.3] }}
             transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
           />
         ))}
@@ -57,8 +43,16 @@ export default function App() {
   const [sourceDocuments, setSourceDocuments] = useState<SourceDocument[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [highlightedSourceId, setHighlightedSourceId] = useState<string>();
+  const [conversationMemory, setConversationMemory] = useState("Chưa có lịch sử hội thoại.");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
+
+  // Force light theme initially if it's not set
+  useEffect(() => {
+    if (theme !== 'light' && theme !== 'dark') {
+      setTheme('light');
+    }
+  }, [theme, setTheme]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,18 +72,39 @@ export default function App() {
 
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
+    setConversationMemory(buildConversationMemory([...messages, userMessage]).summary);
 
     try {
-      const assistantMessage = await simulateAPICall(content);
-      const response = generateMockResponse(content);
+      const history = [...messages, userMessage].map((message) => ({
+        role: message.role,
+        content: message.content,
+      }));
+      const response = await sendChatMessage(content, history, 5);
+      const assistantMessage: Message = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: response.answer,
+        citations: response.citations,
+        timestamp: new Date(),
+      };
       setMessages((prev) => [...prev, assistantMessage]);
       setSourceDocuments((prev) => {
         const existingIds = new Set(prev.map((doc) => doc.id));
         const newDocs = response.sources.filter((doc) => !existingIds.has(doc.id));
         return [...prev, ...newDocs];
       });
+      setConversationMemory(response.memory_summary);
     } catch (error) {
       console.error("Error sending message:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: "Không thể kết nối tới RAG API. Kiểm tra backend `group_project/app.py` và thử lại.",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +123,7 @@ export default function App() {
   const handleClearChat = () => {
     setMessages([]);
     setSourceDocuments([]);
+    setConversationMemory("Chưa có lịch sử hội thoại.");
   };
 
   const toggleTheme = () => {
@@ -117,298 +133,99 @@ export default function App() {
   const isDark = theme === "dark";
 
   return (
-    <div className="size-full flex flex-col relative overflow-hidden" style={{ background: "var(--background)" }}>
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, #6366f1, transparent)" }}
-        />
-        <motion.div
-          animate={{ scale: [1, 1.15, 1], opacity: [0.12, 0.2, 0.12] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-1/3 -right-20 w-80 h-80 rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, #a78bfa, transparent)" }}
-        />
-        <motion.div
-          animate={{ scale: [1, 1.08, 1], opacity: [0.08, 0.15, 0.08] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-          className="absolute -bottom-20 left-1/3 w-72 h-72 rounded-full blur-3xl"
-          style={{ background: "radial-gradient(circle, #818cf8, transparent)" }}
-        />
-      </div>
-
-      {/* Header */}
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 border-b"
-        style={{
-          background: isDark ? "rgba(15, 22, 41, 0.85)" : "rgba(255, 255, 255, 0.85)",
-          backdropFilter: "blur(20px)",
-          borderColor: "var(--border)",
-        }}
-      >
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <motion.div
-                whileHover={{ scale: 1.05, rotate: 3 }}
-                whileTap={{ scale: 0.95 }}
-                className="relative p-2.5 rounded-xl overflow-hidden cursor-pointer"
-                style={{
-                  background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-                  boxShadow: "0 4px 15px rgba(99, 102, 241, 0.4)",
-                }}
+    <div className="h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary selection:text-primary-foreground overflow-hidden">
+      {/* Navbar Minimal */}
+      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-bold tracking-tight text-lg">
+            <Scale className="size-5" />
+            <span>Pháp Luật Ma Túy</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {messages.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearChat}
+                className="rounded-none border-destructive/30 text-destructive hover:bg-destructive/10 hidden sm:flex"
+                aria-label="Clear chat"
               >
-                <div className="animate-shimmer absolute inset-0 rounded-xl" />
-                <Scale className="size-6 text-white relative z-10" />
-              </motion.div>
-
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1
-                    className="font-semibold"
-                    style={{
-                      background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                    }}
-                  >
-                    Chatbot Pháp Luật Ma Túy
-                  </h1>
-                  <span
-                    className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(124,58,237,0.12))",
-                      color: "#6366f1",
-                      border: "1px solid rgba(99,102,241,0.3)",
-                    }}
-                  >
-                    <Sparkles className="size-3" />
-                    AI
-                  </span>
-                </div>
-                <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>
-                  Hỗ trợ tra cứu và tư vấn pháp luật về ma túy
-                </p>
-              </div>
+                <Trash2 className="size-4 mr-2" />
+                Xóa lịch sử
+              </Button>
+            )}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 text-xs font-semibold border border-green-500/30 text-green-600 dark:text-green-400 rounded-none bg-green-500/10">
+              <span className="size-1.5 bg-green-500 rounded-full animate-pulse" />
+              Sẵn sàng
             </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-none border-border"
+              aria-label="Toggle theme"
+            >
+              {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            </Button>
+          </div>
+        </div>
+      </header>
 
-            <div className="flex items-center gap-2">
-              <div
-                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
-                style={{
-                  background: "rgba(34, 197, 94, 0.08)",
-                  border: "1px solid rgba(34, 197, 94, 0.25)",
-                  color: "#16a34a",
-                }}
-              >
-                <motion.span
-                  animate={{ scale: [1, 1.4, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="size-1.5 rounded-full bg-green-500"
-                />
-                Trực tuyến
-              </div>
-
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={toggleTheme}
-                  className="rounded-xl"
-                  style={{ borderColor: "var(--border)" }}
-                >
-                  {isDark ? (
-                    <Sun className="size-4 text-amber-400" />
-                  ) : (
-                    <Moon className="size-4" style={{ color: "#6366f1" }} />
-                  )}
-                </Button>
-              </motion.div>
-
-              <AnimatePresence>
-                {messages.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 10, scale: 0.9 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 10, scale: 0.9 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      variant="outline"
-                      onClick={handleClearChat}
-                      className="gap-2 rounded-xl"
-                      style={{
-                        borderColor: "rgba(239,68,68,0.3)",
-                        color: "#ef4444",
-                        background: "rgba(239,68,68,0.04)",
-                      }}
-                    >
-                      <Trash2 className="size-4" />
-                      <span className="hidden sm:inline">Xóa hội thoại</span>
-                    </Button>
-                  </motion.div>
+      {/* Main Chat Area */}
+      <main className="flex-1 min-h-0 flex overflow-hidden container mx-auto px-2 py-4 sm:px-4">
+        <div className="w-full flex gap-4">
+          {/* Chat Column */}
+          <div className="flex-1 flex flex-col min-w-0 border border-border bg-card">
+            <div className="flex-1 overflow-hidden">
+              <ScrollArea className="h-full pr-4 p-4">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center space-y-6 py-12">
+                    <Scale className="size-12 text-muted-foreground/30" />
+                    <div>
+                      <h3 className="font-medium text-lg">Bạn cần hỗ trợ gì?</h3>
+                      <p className="text-sm text-muted-foreground mt-1">Chọn một câu hỏi gợi ý hoặc nhập câu hỏi của bạn.</p>
+                    </div>
+                    <div className="w-full max-w-xl">
+                      <SuggestedQuestions
+                        questions={suggestedQuestions}
+                        onQuestionClick={handleSendMessage}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 pb-4">
+                    {messages.map((message, index) => (
+                      <ChatMessage
+                        key={message.id}
+                        message={message}
+                        onCitationClick={handleCitationClick}
+                        index={index}
+                      />
+                    ))}
+                    {isLoading && <TypingIndicator />}
+                    <div ref={messagesEndRef} />
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-hidden relative z-10">
-        <div className="container mx-auto px-4 h-full">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full py-4">
-            {/* Chat Area */}
-            <div className="lg:col-span-2 flex flex-col h-full">
-              <ScrollArea className="flex-1 pr-2">
-                <AnimatePresence mode="wait">
-                  {messages.length === 0 ? (
-                    <motion.div
-                      key="welcome"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.4 }}
-                      className="flex flex-col items-center justify-center min-h-[400px] gap-8 py-12"
-                    >
-                      {/* Hero icon */}
-                      <motion.div
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                        className="relative"
-                      >
-                        <div
-                          className="p-6 rounded-3xl relative overflow-hidden"
-                          style={{
-                            background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-                            boxShadow: "0 20px 60px rgba(99, 102, 241, 0.4)",
-                          }}
-                        >
-                          <div className="animate-shimmer absolute inset-0 rounded-3xl" />
-                          <Scale className="size-14 text-white relative z-10" />
-                        </div>
-                        <motion.div
-                          animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="absolute -inset-4 rounded-3xl"
-                          style={{ border: "2px solid #6366f1" }}
-                        />
-                        <motion.div
-                          animate={{ scale: [1, 1.08, 1], opacity: [0.08, 0.15, 0.08] }}
-                          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-                          className="absolute -inset-8 rounded-3xl"
-                          style={{ border: "2px solid #6366f1" }}
-                        />
-                      </motion.div>
-
-                      <div className="text-center space-y-3 max-w-lg px-4">
-                        <h2
-                          className="font-semibold"
-                          style={{
-                            background: "linear-gradient(135deg, #4f46e5, #7c3aed, #a78bfa)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                          }}
-                        >
-                          Chào mừng đến với Chatbot Pháp Luật Ma Túy
-                        </h2>
-                        <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-                          Tôi có thể giúp bạn tra cứu thông tin về pháp luật ma túy,
-                          các quy định liên quan và tin tức mới nhất với trích dẫn chính xác.
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2 pt-1">
-                          {[
-                            { icon: Shield, label: "Chính xác & Đáng tin cậy" },
-                            { icon: Scale, label: "Trích dẫn pháp luật" },
-                            { icon: Sparkles, label: "AI thông minh" },
-                          ].map(({ icon: Icon, label }, i) => (
-                            <motion.span
-                              key={label}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.3 + i * 0.1 }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs"
-                              style={{
-                                background: "rgba(99,102,241,0.08)",
-                                border: "1px solid rgba(99,102,241,0.2)",
-                                color: "#6366f1",
-                              }}
-                            >
-                              <Icon className="size-3" />
-                              {label}
-                            </motion.span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="w-full max-w-2xl"
-                      >
-                        <SuggestedQuestions
-                          questions={suggestedQuestions}
-                          onQuestionClick={handleSendMessage}
-                        />
-                      </motion.div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="messages"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="space-y-2 pb-4 pt-2"
-                    >
-                      {messages.map((message, index) => (
-                        <ChatMessage
-                          key={message.id}
-                          message={message}
-                          onCitationClick={handleCitationClick}
-                          index={index}
-                        />
-                      ))}
-                      {isLoading && <TypingIndicator />}
-                      <div ref={messagesEndRef} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </ScrollArea>
-
-              {/* Input Area */}
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="mt-3 p-3 rounded-2xl"
-                style={{
-                  background: isDark ? "rgba(15, 22, 41, 0.6)" : "rgba(255, 255, 255, 0.8)",
-                  backdropFilter: "blur(12px)",
-                  border: "1px solid var(--border)",
-                  boxShadow: "0 -4px 20px rgba(99,102,241,0.06)",
-                }}
-              >
-                <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
-              </motion.div>
             </div>
-
-            {/* Source Documents Sidebar */}
-            <div className="lg:col-span-1 h-full hidden lg:block">
-              <SourceDocuments
-                documents={sourceDocuments}
-                highlightedId={highlightedSourceId}
-              />
+            
+            <div className="border-t border-border p-4 bg-muted/30">
+              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+              <div className="mt-3 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Bộ nhớ:</span> {conversationMemory}
+              </div>
             </div>
           </div>
+
+          {/* Sources Area (Visible on large screens) */}
+          <div className="hidden lg:block w-[360px] min-w-[360px] border border-border bg-card">
+            <SourceDocuments
+              documents={sourceDocuments}
+              highlightedId={highlightedSourceId}
+            />
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

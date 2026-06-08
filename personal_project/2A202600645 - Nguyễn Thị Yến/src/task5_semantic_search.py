@@ -1,6 +1,5 @@
 """
 Task 5 — Semantic Search Module.
-
 Viết module tìm kiếm ngữ nghĩa (dense retrieval) trên vector store.
 
 Yêu cầu:
@@ -8,6 +7,10 @@ Yêu cầu:
     - Output: danh sách chunks có score, sorted descending
     - Phải tương thích với embedding model và vector store ở Task 4
 """
+
+import math
+
+from .task4_chunking_indexing import embed_chunks, load_or_build_index
 
 
 def semantic_search(query: str, top_k: int = 10) -> list[dict]:
@@ -26,37 +29,20 @@ def semantic_search(query: str, top_k: int = 10) -> list[dict]:
         }
         Sorted by score descending.
     """
-    # TODO: Implement semantic search
-    #
-    # Bước 1: Embed query bằng cùng model ở Task 4
-    # Bước 2: Query vector store (cosine similarity)
-    # Bước 3: Return top_k results
-    #
-    # Ví dụ với Weaviate:
-    # import weaviate
-    # from sentence_transformers import SentenceTransformer
-    #
-    # model = SentenceTransformer("BAAI/bge-m3")
-    # query_embedding = model.encode(query).tolist()
-    #
-    # client = weaviate.connect_to_local()
-    # collection = client.collections.get("DrugLawDocs")
-    #
-    # results = collection.query.near_vector(
-    #     near_vector=query_embedding,
-    #     limit=top_k,
-    #     return_metadata=MetadataQuery(distance=True)
-    # )
-    #
-    # return [
-    #     {
-    #         "content": obj.properties["content"],
-    #         "score": 1 - obj.metadata.distance,  # distance → similarity
-    #         "metadata": {"source": obj.properties["source"], ...}
-    #     }
-    #     for obj in results.objects
-    # ]
-    raise NotImplementedError("Implement semantic_search")
+    if not query.strip() or top_k <= 0:
+        return []
+    query_vector = embed_chunks([{"content": query, "metadata": {}}])[0]["embedding"]
+    results = []
+    for chunk in load_or_build_index():
+        embedding = chunk.get("embedding", [])
+        score = sum(a * b for a, b in zip(query_vector, embedding))
+        if math.isfinite(score) and score > 0:
+            results.append({
+                "content": chunk["content"],
+                "score": float(score),
+                "metadata": chunk.get("metadata", {}),
+            })
+    return sorted(results, key=lambda item: item["score"], reverse=True)[:top_k]
 
 
 if __name__ == "__main__":

@@ -47,11 +47,9 @@ export function ChatInput({
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 items-end">
       <div
-        className="flex-1 flex items-end gap-2 rounded-xl px-4 py-2 transition-all duration-200"
+        className="flex-1 flex items-end gap-2 px-4 py-2 transition-all duration-200 border bg-background"
         style={{
-          background: "var(--input-background)",
-          border: `1.5px solid ${isFocused ? "#6366f1" : "var(--border)"}`,
-          boxShadow: isFocused ? "0 0 0 3px rgba(99,102,241,0.12)" : "none",
+          borderColor: isFocused ? "var(--foreground)" : "var(--border)",
         }}
       >
         <textarea
@@ -76,15 +74,12 @@ export function ChatInput({
       <motion.button
         type="submit"
         disabled={!canSend}
-        whileHover={canSend ? { scale: 1.05 } : {}}
-        whileTap={canSend ? { scale: 0.95 } : {}}
-        className="size-[46px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-200"
+        aria-label="Gửi câu hỏi"
+        className="size-[46px] flex items-center justify-center shrink-0 transition-colors duration-200 border"
         style={{
-          background: canSend
-            ? "linear-gradient(135deg, #4f46e5, #7c3aed)"
-            : "var(--muted)",
-          boxShadow: canSend ? "0 4px 15px rgba(99,102,241,0.4)" : "none",
-          color: canSend ? "white" : "var(--muted-foreground)",
+          background: canSend ? "var(--foreground)" : "var(--muted)",
+          borderColor: canSend ? "var(--foreground)" : "var(--border)",
+          color: canSend ? "var(--background)" : "var(--muted-foreground)",
           cursor: canSend ? "pointer" : "not-allowed",
         }}
       >
